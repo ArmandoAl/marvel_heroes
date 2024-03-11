@@ -9,9 +9,21 @@ class MockIHeroesRepository extends Mock implements IHeroesRepository {
   @override
   Future<List<HeroeModel>> fetchHeroes(
       int limit, int offset, String nameStartsWith) async {
-    return <HeroeModel>[
-      HeroeModel(id: 1, name: 'Iron Man', description: '', image: '')
+    return [
+      HeroeModel(
+        id: 1,
+        name: 'Spiderman',
+        description: 'description',
+        image: 'image',
+      )
     ];
+  }
+}
+
+class MockGetStorage extends Mock implements GetStorage {
+  @override
+  Future<void> write(String key, dynamic value) async {
+    return;
   }
 }
 
@@ -21,13 +33,13 @@ void main() {
   late MockIHeroesRepository mockRepository;
   late GetStorage getStorage;
 
-  setUp(() {
+  setUp(() async {
     mockRepository = MockIHeroesRepository();
     getStorage = GetStorage();
     controller = HeroesController(mockRepository, getStorage);
   });
-
-  test('fetchHeroes should return success and populate heroes', () async {
+  test('the controller should update the list of heroes using fetchHeroes',
+      () async {
     // Arrange
     const limit = 20;
     const offset = 0;
@@ -37,6 +49,16 @@ void main() {
     // Assert
     expect(controller.status, Status.success);
     expect(controller.heroes, isNotEmpty);
+    expect(controller.heroes[0], isA<HeroeModel>());
+  });
+
+  test('the controller should update the list of heroes using fetchMoreHeroes',
+      () async {
+    await controller.fetchHeroes(20, 0, '');
+    await controller.fetchMoreHeroes();
+    // Assert
+    expect(controller.status, Status.moreData);
+    expect(controller.heroes.length, 2);
     expect(controller.heroes[0], isA<HeroeModel>());
   });
 }
